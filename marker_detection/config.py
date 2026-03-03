@@ -1,0 +1,36 @@
+"""Configuration statique du pipeline de detection."""
+
+from __future__ import annotations
+
+FRAME_W = 1920
+FRAME_H = 1080
+CAMERA_INDEX = 1
+CAMERA_FPS = 30
+
+WINDOW_CAMERA = "Camera"
+WINDOW_AERIAL = "Aerial View"
+WINDOW_CAMERA_SIZE = (1280, 720)
+WINDOW_AERIAL_SIZE = (800, 600)
+
+CORNER_IDS = {20, 21, 22, 23}
+# Ordre de reference pour la table: TL, TR, BR, BL
+CORNER_ORDER = [23, 22, 20, 21]
+
+TABLE_W_MM = 3000
+TABLE_H_MM = 2000
+ARUCO_INSET_MM = 500
+
+GRID_COLS = 30
+GRID_ROWS = 20
+
+ARUCO_OFFSET_COLS = 5
+ARUCO_OFFSET_ROWS = 5
+ARUCO_INNER_COLS = 20
+ARUCO_INNER_ROWS = 10
+
+AERIAL_W = 1200
+AERIAL_H = 800
+
+DETECT_SCALE = 0.6
+CLAHE_CLIP_LIMIT = 2.5
+CLAHE_TILE_GRID_SIZE = (8, 8)
