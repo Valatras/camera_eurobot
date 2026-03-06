@@ -37,6 +37,9 @@ def create_windows() -> None:
 
     cv2.namedWindow(config.WINDOW_AERIAL, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(config.WINDOW_AERIAL, *config.WINDOW_AERIAL_SIZE)
+    print("Fenetres creees: "
+          f"{config.WINDOW_CAMERA} ({config.WINDOW_CAMERA_SIZE[0]}x{config.WINDOW_CAMERA_SIZE[1]}), "
+          f"{config.WINDOW_AERIAL} ({config.WINDOW_AERIAL_SIZE[0]}x{config.WINDOW_AERIAL_SIZE[1]})")
 
 
 def create_aruco_detector() -> cv2.aruco.ArucoDetector:
