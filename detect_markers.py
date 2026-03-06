@@ -2,12 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
-# Sous Wayland (Hyprland), OpenCV/Qt cherche souvent le plugin "wayland"
-# absent des wheels pip. Forcer XWayland (xcb) evite le crash GUI.
-if os.environ.get("WAYLAND_DISPLAY") and not os.environ.get("QT_QPA_PLATFORM"):
-    os.environ["QT_QPA_PLATFORM"] = "xcb"
 
 import cv2
 import numpy as np
