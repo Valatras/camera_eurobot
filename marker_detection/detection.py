@@ -54,6 +54,7 @@ def detect_all(
         ),
         interpolation=cv2.INTER_AREA,
     )
+    small = cv2.GaussianBlur(small, (5, 5), 0)
     enhanced_small = clahe.apply(small)
 
     aruco_corners: list[np.ndarray] = []
@@ -72,6 +73,7 @@ def detect_all(
 
     found_corners = {mid for mid in aruco_ids if mid in config.CORNER_IDS}
     if found_corners != config.CORNER_IDS:
+        frame_gray = cv2.GaussianBlur(frame_gray, (5, 5), 0)
         enhanced_full = clahe.apply(frame_gray)
         raw_corners_full, raw_ids_full, _ = detector.detectMarkers(enhanced_full)
         if raw_ids_full is not None:

@@ -51,7 +51,6 @@ def main() -> None:
             break
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
         a_corners, a_ids, q_data, q_corners = detect_all(gray, detector, qr_detector, clahe)
         a_ids, a_corners = aruco_tracker.update(a_ids, a_corners)
         q_data, q_corners = qr_tracker.update(q_data, q_corners)

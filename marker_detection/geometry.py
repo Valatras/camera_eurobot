@@ -7,7 +7,7 @@ import numpy as np
 
 from marker_detection import config
 
-
+# top-left, top-right, bottom-right, bottom-left
 def select_table_corner_point(marker_pts: np.ndarray, position: str) -> np.ndarray:
     """Choisit le coin du marqueur qui correspond au coin reel de table."""
     if position == "TL":

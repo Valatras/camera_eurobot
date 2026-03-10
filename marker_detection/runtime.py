@@ -47,15 +47,17 @@ def create_aruco_detector() -> cv2.aruco.ArucoDetector:
     aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
     aruco_params = cv2.aruco.DetectorParameters()
     aruco_params.adaptiveThreshWinSizeMin = 3
-    aruco_params.adaptiveThreshWinSizeMax = 23
+    aruco_params.adaptiveThreshWinSizeMax = 60
     aruco_params.adaptiveThreshWinSizeStep = 10
-    aruco_params.minMarkerPerimeterRate = 0.01
+    aruco_params.minMarkerPerimeterRate = 0.003
     aruco_params.maxMarkerPerimeterRate = 4.0
     aruco_params.polygonalApproxAccuracyRate = 0.04
     aruco_params.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
     aruco_params.cornerRefinementWinSize = 5
     aruco_params.cornerRefinementMaxIterations = 30
     aruco_params.errorCorrectionRate = 0.5
+    aruco_params.minCornerDistanceRate = 0.02
+    aruco_params.minDistanceToBorder = 3
     return cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
 
 
