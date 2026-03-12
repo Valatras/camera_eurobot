@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 from marker_detection import config
+from marker_detection.geometry import to_cell
 
 
 def draw_grid(frame: np.ndarray, h_grid_to_img: np.ndarray | None) -> None:
@@ -74,12 +75,119 @@ def draw_aerial_grid(aerial: np.ndarray) -> None:
             cv2.putText(aerial, f"{row}", (2, y + 12), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 255), 1)
 
 
+def compute_aerial(frame: np.ndarray, h_aerial: np.ndarray | None, frame_count: int) -> np.ndarray | None:
+    """Calcule la vue aerienne."""
+    if h_aerial is None or frame_count % 2 != 0:
+        return None
+
+    aerial = cv2.warpPerspective(frame, h_aerial, (config.AERIAL_W, config.AERIAL_H))
+    draw_aerial_grid(aerial)
+
+    return aerial
+
+
+def draw_corner_markers(frame: np.ndarray, corners_by_id: dict[int, np.ndarray]) -> None:
+    """Dessine les ArUco servant de coins de table."""
+    for marker_id, corner in corners_by_id.items():
+        draw_detection(frame, corner[0], f"C{marker_id}", (0, 255, 255))
+
+
+def draw_object_markers(
+    frame: np.ndarray,
+    aerial: np.ndarray | None,
+    obj_aruco: list[tuple[int, np.ndarray]],
+    h_img_to_grid: np.ndarray | None,
+    h_aerial: np.ndarray | None,
+    frame_count: int,
+) -> None:
+    """Dessine les ArUco objets."""
+    for marker_id, corner in obj_aruco:
+        center = corner[0].mean(axis=0)
+        pos = to_cell(center[0], center[1], h_img_to_grid)
+
+        label = f"A{marker_id}[{pos[0]:.1f},{pos[1]:.1f}]" if pos else f"A{marker_id}"
+
+        draw_detection(frame, corner[0], label, (0, 255, 0))
+
+        if aerial is not None and frame_count % 2 == 0:
+            draw_aerial_detection(
+                aerial,
+                corner[0],
+                f"A{marker_id}",
+                (0, 255, 0),
+                h_aerial,
+            )
+
+
+def draw_qr_codes(
+    frame: np.ndarray,
+    aerial: np.ndarray | None,
+    q_data: list[str],
+    q_corners: list[np.ndarray],
+    h_img_to_grid: np.ndarray | None,
+    h_aerial: np.ndarray | None,
+    frame_count: int,
+) -> None:
+    """Dessine les QR codes detectes."""
+    for data, corners in zip(q_data, q_corners):
+        center = corners.mean(axis=0)
+        pos = to_cell(center[0], center[1], h_img_to_grid)
+
+        short = data[:10] + "..." if len(data) > 10 else data
+        label = f"QR:{short}[{pos[0]:.1f},{pos[1]:.1f}]" if pos else f"QR:{short}"
+
+        draw_detection(frame, corners, label, (0, 165, 255))
+
+        if aerial is not None and frame_count % 2 == 0:
+            draw_aerial_detection(
+                aerial,
+                corners,
+                f"QR:{short}",
+                (0, 165, 255),
+                h_aerial,
+            )
+
+
+def draw_status(
+    frame: np.ndarray,
+    corners_by_id: dict[int, np.ndarray],
+    obj_aruco: list[tuple[int, np.ndarray]],
+    q_data: list[str],
+    h_img_to_grid: np.ndarray | None,
+) -> None:
+    """Dessine les informations de statut."""
+    n_corners = len(corners_by_id)
+    missing = config.CORNER_IDS - set(corners_by_id)
+    grid_ok = h_img_to_grid is not None
+
+    cv2.putText(
+        frame,
+        f"C:{n_corners}/4 Obj:{len(obj_aruco) + len(q_data)} Grid:{'OK' if grid_ok else '...'}",
+        (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (0, 255, 0) if grid_ok else (0, 165, 255),
+        2,
+    )
+
+    if missing:
+        cv2.putText(
+            frame,
+            f"Missing: {sorted(missing)}",
+            (10, 60),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 0, 255),
+            1,
+        )
+
+
 def draw_detection(frame: np.ndarray, pts_raw: np.ndarray, label: str, color: tuple[int, int, int]) -> None:
     """Dessine un polygone detecte et son libelle sur une image."""
     pts = pts_raw.astype(np.int32).reshape(-1, 1, 2)
     cv2.polylines(frame, [pts], True, color, 2)
     center = pts_raw.mean(axis=0).astype(int)
-    cv2.putText(frame, label, (center[0] + 8, center[1] - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 1)
+    cv2.putText(frame, label, (center[0] + 8, center[1] - 8), cv2.FONT_HERSHEY_SIMPLEX, 1.2, color, 2)
 
 
 def draw_aerial_detection(
@@ -98,4 +206,4 @@ def draw_aerial_detection(
 
     cv2.polylines(aerial, [pts_int], True, color, 2)
     center = pts_aerial.mean(axis=0)[0].astype(int)
-    cv2.putText(aerial, label, (center[0] + 5, center[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
+    cv2.putText(aerial, label, (center[0] + 5, center[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 1)

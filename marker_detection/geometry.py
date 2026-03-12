@@ -92,6 +92,7 @@ def to_cell(px: float, py: float, h_img_to_grid: np.ndarray | None) -> tuple[flo
 
     out = cv2.perspectiveTransform(np.float32([[[px, py]]]), h_img_to_grid)
     gx, gy = float(out[0, 0, 0]), float(out[0, 0, 1])
+    gx = config.GRID_COLS - gx  # Inverser l'axe horizontal pour top-right = (0,0)
 
     if gx < -0.5 or gx > config.GRID_COLS + 0.5 or gy < -0.5 or gy > config.GRID_ROWS + 0.5:
         return None
