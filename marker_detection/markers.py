@@ -6,6 +6,7 @@ import numpy as np
 
 from marker_detection import config
 from marker_detection.geometry import to_cell
+from marker_detection.esp32_sender import ESP32Sender
 
 
 def classify_marker_id(marker_id: int) -> str:
@@ -42,12 +43,16 @@ def separate_markers(
     return corners_by_id, obj_aruco
 
 
-def print_detected_objects(
+def _build_detected_list(
     corners_by_id: dict[int, np.ndarray],
     obj_aruco: list[tuple[int, np.ndarray]],
     h_img_to_grid: np.ndarray | None,
-) -> None:
-    """Imprime les objets detectes en coordonnees grille."""
+) -> list[tuple[str, int, int]]:
+    """Construit la liste triee des marqueurs detectes en coords grille.
+
+    Returns:
+        Liste de tuples (label, grid_x, grid_y).
+    """
     detected: list[tuple[str, int, int]] = []
 
     all_markers = list(corners_by_id.items()) + obj_aruco
@@ -65,6 +70,46 @@ def print_detected_objects(
         detected.append((classify_marker_id(marker_id), gx, gy))
 
     detected.sort(key=lambda item: item[0])
+    return detected
+
+
+def print_detected_objects(
+    corners_by_id: dict[int, np.ndarray],
+    obj_aruco: list[tuple[int, np.ndarray]],
+    h_img_to_grid: np.ndarray | None,
+) -> None:
+    """Imprime les objets detectes en coordonnees grille."""
+    detected = _build_detected_list(corners_by_id, obj_aruco, h_img_to_grid)
 
     if detected:
         print(detected)
+
+
+def send_detected_objects(
+    corners_by_id: dict[int, np.ndarray],
+    obj_aruco: list[tuple[int, np.ndarray]],
+    h_img_to_grid: np.ndarray | None,
+    sender: ESP32Sender,
+) -> bool:
+    """Envoie les objets detectes a un ESP32 via USB serie.
+
+    Chaque marqueur est transmis sur une ligne au format :
+        TYPE,X,Y\\n
+    Suivi d'une ligne de fin de trame :
+        END\\n
+
+    Args:
+        corners_by_id: Coins de table detectes, indexes par id.
+        obj_aruco:     Autres marqueurs ArUco detectes.
+        h_img_to_grid: Homographie image -> grille.
+        sender:        Instance d'ESP32Sender deja connectee.
+
+    Returns:
+        True si l'envoi a reussi, False sinon.
+    """
+    detected = _build_detected_list(corners_by_id, obj_aruco, h_img_to_grid)
+
+    if not detected:
+        return True  # Rien a envoyer, pas une erreur
+
+    return sender.send_markers(detected)

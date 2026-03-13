@@ -25,14 +25,18 @@ from marker_detection.visualization import (
     draw_status,
     draw_table_outline,
 )
+from marker_detection.esp32_sender import ESP32Sender
+from marker_detection.markers import send_detected_objects
 
 
 def main() -> None:
     """Boucle principale du pipeline."""
 
-    # Ouvre une connexion camera.
+    # Ouvre une connexion camera et esp32.
     try:
         cap = create_capture()
+        sender = ESP32Sender()
+        sender.connect()
     except RuntimeError as exc:
         print(f"[ERREUR] {exc}")
         return
@@ -96,8 +100,11 @@ def main() -> None:
             frame, aerial, q_data, q_corners, h_img_to_grid, last_h_aerial, frame_count
         )
 
+        # envoies des donnees detectees dans l'ESP32 (ou la console si pas de connexion).
         if h_img_to_grid is not None and frame_count % 2 == 0:
-            print_detected_objects(corners_by_id, obj_aruco, h_img_to_grid)
+            # print_detected_objects(corners_by_id, obj_aruco, h_img_to_grid)
+            send_detected_objects(corners_by_id,
+                                  obj_aruco, h_img_to_grid, sender)
 
         draw_status(frame, corners_by_id, obj_aruco, q_data, h_img_to_grid)
 
@@ -111,6 +118,8 @@ def main() -> None:
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break  # Quitter avec 'q'.
 
+    # shut down proprement les ressources.
+    sender.disconnect()
     cap.release()
     cv2.destroyAllWindows()
 
