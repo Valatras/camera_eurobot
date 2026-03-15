@@ -118,41 +118,10 @@ def draw_object_markers(
                 h_aerial,
             )
 
-
-def draw_qr_codes(
-    frame: np.ndarray,
-    aerial: np.ndarray | None,
-    q_data: list[str],
-    q_corners: list[np.ndarray],
-    h_img_to_grid: np.ndarray | None,
-    h_aerial: np.ndarray | None,
-    frame_count: int,
-) -> None:
-    """Dessine les QR codes detectes."""
-    for data, corners in zip(q_data, q_corners):
-        center = corners.mean(axis=0)
-        pos = to_cell(center[0], center[1], h_img_to_grid)
-
-        short = data[:10] + "..." if len(data) > 10 else data
-        label = f"QR:{short}[{pos[0]:.1f},{pos[1]:.1f}]" if pos else f"QR:{short}"
-
-        draw_detection(frame, corners, label, (0, 165, 255))
-
-        if aerial is not None and frame_count % 2 == 0:
-            draw_aerial_detection(
-                aerial,
-                corners,
-                f"QR:{short}",
-                (0, 165, 255),
-                h_aerial,
-            )
-
-
 def draw_status(
     frame: np.ndarray,
     corners_by_id: dict[int, np.ndarray],
     obj_aruco: list[tuple[int, np.ndarray]],
-    q_data: list[str],
     h_img_to_grid: np.ndarray | None,
 ) -> None:
     """Dessine les informations de statut."""
@@ -162,7 +131,7 @@ def draw_status(
 
     cv2.putText(
         frame,
-        f"C:{n_corners}/4 Obj:{len(obj_aruco) + len(q_data)} Grid:{'OK' if grid_ok else '...'}",
+        f"C:{n_corners}/4 Obj:{len(obj_aruco)} Grid:{'OK' if grid_ok else '...'}",
         (10, 30),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.7,

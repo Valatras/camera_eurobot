@@ -1,4 +1,4 @@
-"""Detection ArUco/QR avec validation et passe multi-resolution."""
+"""Detection ArUco avec validation et passe multi-resolution."""
 
 from __future__ import annotations
 
@@ -42,10 +42,9 @@ def validate_aruco(corner: np.ndarray, gray: np.ndarray) -> bool:
 def detect_all(
     frame_gray: np.ndarray,
     detector: cv2.aruco.ArucoDetector,
-    qr_detector: cv2.QRCodeDetector,
     clahe: cv2.CLAHE,
-) -> tuple[list[np.ndarray], list[int], list[str], list[np.ndarray]]:
-    """Detecte ArUco et QR en combinant une passe rapide puis une passe de rattrapage."""
+) -> tuple[list[np.ndarray], list[int]]:
+    """Detecte ArUco en combinant une passe rapide puis une passe de rattrapage."""
     small = cv2.resize(
         frame_gray,
         (
@@ -84,13 +83,4 @@ def detect_all(
                     aruco_ids.append(marker_id)
                     seen_aruco.add(marker_id)
 
-    qr_data: list[str] = []
-    qr_corners: list[np.ndarray] = []
-    retval, decoded, points, _ = qr_detector.detectAndDecodeMulti(enhanced_small)
-    if retval and points is not None:
-        for data, pts in zip(decoded, points):
-            if data:
-                qr_data.append(data)
-                qr_corners.append(pts / config.DETECT_SCALE)
-
-    return aruco_corners, aruco_ids, qr_data, qr_corners
+    return aruco_corners, aruco_ids

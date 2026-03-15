@@ -61,11 +61,6 @@ def create_aruco_detector() -> cv2.aruco.ArucoDetector:
     return cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
 
 
-def create_qr_detector() -> cv2.QRCodeDetector:
-    """Construit le detecteur QR."""
-    return cv2.QRCodeDetector()
-
-
 def create_clahe() -> cv2.CLAHE:
     """Construit le pretraitement CLAHE utilise avant detection."""
     return cv2.createCLAHE(
